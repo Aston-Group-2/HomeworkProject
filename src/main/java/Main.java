@@ -1,7 +1,9 @@
+import userservice.ui.UserConsoleUI;
+
 public class Main {
 
     public static void main(String[] args) {
-
-        System.out.println("Hello and welcome!");
+        UserConsoleUI ui = new UserConsoleUI();
+        ui.start();
     }
 }
