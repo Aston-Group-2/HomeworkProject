@@ -1,6 +1,6 @@
 Модуль 2. SQL. Hibernate. JPA
 Разработать консольное приложение(user-service) на Java, использующее Hibernate для взаимодействия с PostgreSQL, без использования Spring. Приложение должно поддерживать базовые операции CRUD (Create, Read, Update, Delete) над сущностью User.
-Требования
+Требования:
 Использовать Hibernate в качестве ORM.
 База данных — PostgreSQL.
 Настроить Hibernate без Spring, используя hibernate.cfg.xml или properties-файл.
