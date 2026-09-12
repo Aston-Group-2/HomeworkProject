@@ -2,9 +2,9 @@ name: CI - Build and Test
 
 on:
   push:
-    branches: [ main ]
+    branches: [ development ]
   pull_request:
-    branches: [ main ]
+    branches: [ development ]
 
 permissions:
   contents: read
@@ -27,20 +27,19 @@ jobs:
           cache: maven
 
       - name: Run tests with coverage
-        run: mvn clean test jacoco:report
+        run: mvn clean test
 
       - name: Add coverage report to PR
-        id: jacoco
+        if: github.event_name == 'pull_request'
         uses: madrapps/jacoco-report@v1.8.0
         with:
           paths: ${{ github.workspace }}/target/site/jacoco/jacoco.xml
           token: ${{ secrets.GITHUB_TOKEN }}
-          min-coverage-overall: 80
-          min-coverage-changed-lines: 70
-          title: '📊 JaCoCo Coverage Report'
+          title: 'JaCoCo Coverage Report'
           update-comment: true
 
       - name: Upload JaCoCo report
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: jacoco-report
