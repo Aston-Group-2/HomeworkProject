@@ -25,7 +25,7 @@ public enum MenuAction {
             userService.getUserById(id)
                     .ifPresentOrElse(
                             user -> System.out.println(" Found: " + user),
-                            () -> System.out.println("⚠ser not found.")
+                            () -> System.out.println("User not found.")
                     );
         }
     },

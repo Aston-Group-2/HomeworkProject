@@ -24,7 +24,7 @@ public class UserDaoImpl implements UserDao {
             logger.info("User saved successfully: {}", user.getEmail());
             return user;
         } catch (Exception e) {
-            if (transaction != null && transaction.isActive()) transaction.rollback();
+            if (transaction != null && transaction.getStatus().canRollback()) transaction.rollback();
             logger.error("Error saving user: {}", e.getMessage());
             throw new RuntimeException("Failed to save user", e);
         }
@@ -32,10 +32,14 @@ public class UserDaoImpl implements UserDao {
 
     @Override
     public Optional<User> findById(Long id) {
+        Transaction transaction = null;
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+            transaction = session.beginTransaction();
             User user = session.get(User.class, id);
+            transaction.commit();
             return Optional.ofNullable(user);
         } catch (Exception e) {
+            if (transaction != null && transaction.getStatus().canRollback()) transaction.rollback();
             logger.error("Error finding user by ID {}: {}", id, e.getMessage());
             throw new RuntimeException("Failed to find user", e);
         }
@@ -43,9 +47,14 @@ public class UserDaoImpl implements UserDao {
 
     @Override
     public List<User> findAll() {
+        Transaction transaction = null;
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
-            return session.createQuery("FROM User", User.class).getResultList();
+            transaction = session.beginTransaction();
+            List<User> users = session.createQuery("FROM User", User.class).getResultList();
+            transaction.commit();
+            return users;
         } catch (Exception e) {
+            if (transaction != null && transaction.getStatus().canRollback()) transaction.rollback();
             logger.error("Error finding all users: {}", e.getMessage());
             throw new RuntimeException("Failed to find all users", e);
         }
@@ -61,7 +70,7 @@ public class UserDaoImpl implements UserDao {
             logger.info("User updated successfully: {}", user.getId());
             return user;
         } catch (Exception e) {
-            if (transaction != null && transaction.isActive()) transaction.rollback();
+            if (transaction != null && transaction.getStatus().canRollback()) transaction.rollback();
             logger.error("Error updating user {}: {}", user.getId(), e.getMessage());
             throw new RuntimeException("Failed to update user", e);
         }
@@ -81,7 +90,7 @@ public class UserDaoImpl implements UserDao {
             transaction.commit();
             logger.info("User deleted successfully: {}", id);
         } catch (Exception e) {
-            if (transaction != null && transaction.isActive()) transaction.rollback();
+            if (transaction != null && transaction.getStatus().canRollback()) transaction.rollback();
             logger.error("Error deleting user {}: {}", id, e.getMessage());
             throw new RuntimeException("Failed to delete user", e);
         }
