@@ -1,5 +1,6 @@
 package console;
 
+import userservice.dao.UserDaoImpl;
 import userservice.services.UserService;
 import userservice.util.HibernateUtil;
 
@@ -7,10 +8,12 @@ import java.util.Scanner;
 
 public class App {
 
-    private static final UserService userService = new UserService();
     private static final Scanner scanner = new Scanner(System.in);
 
     public void run() {
+
+        var userService = new UserService(new UserDaoImpl());
+
         System.out.println("=== User Service Console App ===");
 
         boolean running = true;

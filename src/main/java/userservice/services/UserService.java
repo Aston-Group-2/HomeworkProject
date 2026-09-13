@@ -1,7 +1,6 @@
 package userservice.services;
 
 import userservice.dao.UserDao;
-import userservice.dao.UserDaoImpl;
 import userservice.model.User;
 
 import java.util.List;
@@ -11,8 +10,8 @@ public class UserService {
 
     private final UserDao userDao;
 
-    public UserService() {
-        this.userDao = new UserDaoImpl();
+    public UserService(UserDao userDao) {
+        this.userDao = userDao;
     }
 
     public User createUser(String name, String email, int age) {
