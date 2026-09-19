@@ -6,7 +6,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import userservice.dao.UserDao;
+import userservice.repository.UserRepository;
 import userservice.model.User;
 
 import java.util.List;
@@ -20,7 +20,7 @@ import static org.mockito.Mockito.*;
 class UserServiceTest {
 
     @Mock
-    private UserDao userDao;
+    private UserRepository userRepository;
 
     @InjectMocks
     private UserService userService;
@@ -29,17 +29,17 @@ class UserServiceTest {
 
     @BeforeEach
     void setUp() {
-        userService = new UserService(userDao);
+        userService = new UserService(userRepository);
         testUser = new User("Vasya", "vasya@example.com", 25);
     }
 
     @Test
     void createUser_ValidData_ReturnsUser() {
-        when(userDao.save(any(User.class))).thenReturn(testUser);
+        when(userRepository.save(any(User.class))).thenReturn(testUser);
         User result = userService.createUser("Vasya", "vasya@example.com", 25);
         assertNotNull(result);
         assertEquals("Vasya", result.getName());
-        verify(userDao, times(1)).save(any(User.class));
+        verify(userRepository, times(1)).save(any(User.class));
     }
 
     @Test
@@ -48,7 +48,7 @@ class UserServiceTest {
                 () -> userService.createUser("", "email@example.com", 20));
 
         assertTrue(ex.getMessage().contains("Name and email cannot be empty"));
-        verify(userDao, never()).save(any());
+        verify(userRepository, never()).save(any());
     }
 
     @Test
@@ -56,12 +56,12 @@ class UserServiceTest {
         assertThrows(IllegalArgumentException.class,
                 () -> userService.createUser("Vasya", "vasya@example.com", -5));
 
-        verify(userDao, never()).save(any());
+        verify(userRepository, never()).save(any());
     }
 
     @Test
     void getUserById_ExistingUser_ReturnsOptional() {
-        when(userDao.findById(1L)).thenReturn(Optional.of(testUser));
+        when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
         Optional<User> result = userService.getUserById(1L);
         assertTrue(result.isPresent());
         assertEquals("Vasya", result.get().getName());
@@ -69,7 +69,7 @@ class UserServiceTest {
 
     @Test
     void getUserById_NotFound_ReturnsEmpty() {
-        when(userDao.findById(99L)).thenReturn(Optional.empty());
+        when(userRepository.findById(99L)).thenReturn(Optional.empty());
         Optional<User> result = userService.getUserById(99L);
         assertFalse(result.isPresent());
     }
@@ -77,37 +77,37 @@ class UserServiceTest {
     @Test
     void getAllUsers_ReturnsList() {
         List<User> users = List.of(testUser, new User("Vasya", "vasya@example.com", 30));
-        when(userDao.findAll()).thenReturn(users);
+        when(userRepository.findAll()).thenReturn(users);
         List<User> result = userService.getAllUsers();
         assertEquals(2, result.size());
-        verify(userDao, times(1)).findAll();
+        verify(userRepository, times(1)).findAll();
     }
 
     @Test
     void updateUser_ExistingUser_UpdatesFields() {
-        when(userDao.findById(1L)).thenReturn(Optional.of(testUser));
-        when(userDao.update(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
+        when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
         User updated = userService.updateUser(1L, "New Name", "new@email.com", 40);
         assertEquals("New Name", updated.getName());
         assertEquals("new@email.com", updated.getEmail());
         assertEquals(40, updated.getAge());
-        verify(userDao, times(1)).update(any(User.class));
+        verify(userRepository, times(1)).save(any(User.class));
     }
 
     @Test
     void updateUser_NotFound_ThrowsException() {
-        when(userDao.findById(99L)).thenReturn(Optional.empty());
+        when(userRepository.findById(99L)).thenReturn(Optional.empty());
         RuntimeException ex = assertThrows(RuntimeException.class,
                 () -> userService.updateUser(99L, "Name", "email", 20));
 
         assertTrue(ex.getMessage().contains("User not found with id: 99"));
-        verify(userDao, never()).update(any());
+        verify(userRepository, never()).save(any());
     }
 
     @Test
     void deleteUser_CallsDaoDelete() {
-        doNothing().when(userDao).delete(1L);
+        doNothing().when(userRepository).deleteById(1L);
         userService.deleteUser(1L);
-        verify(userDao, times(1)).delete(1L);
+        verify(userRepository, times(1)).deleteById(1L);
     }
 }
