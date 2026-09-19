@@ -1,17 +1,20 @@
 package userservice.services;
 
-import userservice.dao.UserDao;
+import org.springframework.stereotype.Service;
 import userservice.model.User;
+import userservice.repository.UserRepository;
+
 
 import java.util.List;
 import java.util.Optional;
 
+@Service
 public class UserService {
 
-    private final UserDao userDao;
+    private final UserRepository userRepository;
 
-    public UserService(UserDao userDao) {
-        this.userDao = userDao;
+    public UserService(UserRepository userRepository) {
+        this.userRepository = userRepository;
     }
 
     public User createUser(String name, String email, int age) {
@@ -22,19 +25,19 @@ public class UserService {
             throw new IllegalArgumentException("Age must be positive");
         }
         User user = new User(name, email, age);
-        return userDao.save(user);
+        return userRepository.save(user);
     }
 
     public Optional<User> getUserById(Long id) {
-        return userDao.findById(id);
+        return userRepository.findById(id);
     }
 
     public List<User> getAllUsers() {
-        return userDao.findAll();
+        return userRepository.findAll();
     }
 
     public User updateUser(Long id, String name, String email, int age) {
-        Optional<User> existing = userDao.findById(id);
+        Optional<User> existing = userRepository.findById(id);
         if (existing.isEmpty()) {
             throw new RuntimeException("User not found with id: " + id);
         }
@@ -42,10 +45,10 @@ public class UserService {
         user.setName(name);
         user.setEmail(email);
         user.setAge(age);
-        return userDao.update(user);
+        return userRepository.save(user);
     }
 
     public void deleteUser(Long id) {
-        userDao.delete(id);
+        userRepository.deleteById(id);
     }
 }

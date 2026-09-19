@@ -10,9 +10,8 @@ public class App {
 
     private static final Scanner scanner = new Scanner(System.in);
 
-    public void run() {
+    public void run(UserService userService) {
 
-        var userService = new UserService(new UserDaoImpl());
 
         System.out.println("=== User Service Console App ===");
 
@@ -39,7 +38,6 @@ public class App {
             System.out.println("-----------------------------");
         }
 
-        HibernateUtil.shutdown();
     }
 
     private static void printMenu() {
