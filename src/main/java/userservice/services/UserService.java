@@ -1,51 +1,72 @@
 package userservice.services;
 
-import userservice.dao.UserDao;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import userservice.dto.CreateUserRequest;
+import userservice.dto.UserDto;
 import userservice.model.User;
+import userservice.repository.UserRepository;
 
 import java.util.List;
-import java.util.Optional;
 
+@Service
+@RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class UserService {
 
-    private final UserDao userDao;
+    private final UserRepository userRepository;
 
-    public UserService(UserDao userDao) {
-        this.userDao = userDao;
+    public List<UserDto> getAllUsers() {
+        return userRepository.findAll().stream()
+                .map(this::toDto)
+                .toList();
     }
 
-    public User createUser(String name, String email, int age) {
-        if (name == null || name.isBlank() || email == null || email.isBlank()) {
-            throw new IllegalArgumentException("Name and email cannot be empty");
-        }
-        if (age <= 0) {
-            throw new IllegalArgumentException("Age must be positive");
-        }
-        User user = new User(name, email, age);
-        return userDao.save(user);
+    public UserDto getUserById(Long id) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("User not found with id: " + id));
+        return toDto(user);
     }
 
-    public Optional<User> getUserById(Long id) {
-        return userDao.findById(id);
+    @Transactional
+    public UserDto createUser(CreateUserRequest request) {
+        if (userRepository.existsByEmail(request.getEmail()))
+            throw new IllegalArgumentException("Email already in use");
+
+        User user = new User(request.getName(), request.getEmail(), request.getAge());
+        User saved = userRepository.save(user);
+        return toDto(saved);
     }
 
-    public List<User> getAllUsers() {
-        return userDao.findAll();
+    @Transactional
+    public UserDto updateUser(Long id, CreateUserRequest request) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("User not found with id: " + id));
+
+        user.setName(request.getName());
+        user.setEmail(request.getEmail());
+        user.setAge(request.getAge());
+
+        User updated = userRepository.save(user);
+        return toDto(updated);
     }
 
-    public User updateUser(Long id, String name, String email, int age) {
-        Optional<User> existing = userDao.findById(id);
-        if (existing.isEmpty()) {
-            throw new RuntimeException("User not found with id: " + id);
-        }
-        User user = existing.get();
-        user.setName(name);
-        user.setEmail(email);
-        user.setAge(age);
-        return userDao.update(user);
-    }
-
+    @Transactional
     public void deleteUser(Long id) {
-        userDao.delete(id);
+        if (!userRepository.existsById(id))
+            throw new RuntimeException("User not found with id: " + id);
+
+        userRepository.deleteById(id);
+    }
+
+    private UserDto toDto(User user) {
+        return new UserDto(
+                user.getId(),
+                user.getName(),
+                user.getEmail(),
+                user.getAge(),
+                user.getCreatedAt()
+        );
     }
 }
