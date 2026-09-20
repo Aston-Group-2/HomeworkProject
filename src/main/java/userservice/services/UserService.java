@@ -60,7 +60,6 @@ public class UserService {
         userRepository.deleteById(id);
     }
 
-    // Приватный маппер Entity -> DTO
     private UserDto toDto(User user) {
         return new UserDto(
                 user.getId(),
