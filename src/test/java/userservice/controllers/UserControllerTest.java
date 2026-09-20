@@ -10,6 +10,8 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import userservice.dto.CreateUserRequest;
 import userservice.dto.UserDto;
+import userservice.exception.EmailAlreadyExistsException;
+import userservice.exception.UserNotFoundException;
 import userservice.services.UserService;
 
 import java.time.LocalDateTime;
@@ -87,7 +89,35 @@ class UserControllerTest {
     }
 
     @Test
-    void createUser_ShouldReturnBadRequestOnInvalidData() throws Exception {
+    void getUserById_WhenNotFound_ShouldReturn404WithErrorResponse() throws Exception {
+        when(userService.getUserById(999L))
+                .thenThrow(new UserNotFoundException(999L));
+
+        mockMvc.perform(get("/api/users/999"))
+                .andDo(print())
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.status").value(404))
+                .andExpect(jsonPath("$.message").value("User with id 999 not found"))
+                .andExpect(jsonPath("$.timestamp").exists());
+    }
+
+    @Test
+    void createUser_WhenEmailExists_ShouldReturn409WithErrorResponse() throws Exception {
+        when(userService.createUser(any(CreateUserRequest.class)))
+                .thenThrow(new EmailAlreadyExistsException("ivan@test.com"));
+
+        mockMvc.perform(post("/api/users")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(createRequest)))
+                .andDo(print())
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.status").value(409))
+                .andExpect(jsonPath("$.message").value("User with email 'ivan@test.com' already exists"))
+                .andExpect(jsonPath("$.timestamp").exists());
+    }
+
+    @Test
+    void createUser_WhenInvalidData_ShouldReturn400WithValidationErrors() throws Exception {
         CreateUserRequest invalidRequest = new CreateUserRequest();
         invalidRequest.setName("");
         invalidRequest.setEmail("invalid-email");
@@ -96,6 +126,22 @@ class UserControllerTest {
         mockMvc.perform(post("/api/users")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(invalidRequest)))
-                .andExpect(status().isBadRequest());
+                .andDo(print())
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status").value(400))
+                .andExpect(jsonPath("$.message").isString())
+                .andExpect(jsonPath("$.timestamp").exists());
+    }
+
+    @Test
+    void deleteUser_WhenNotFound_ShouldReturn404() throws Exception {
+        doThrow(new UserNotFoundException(777L))
+                .when(userService).deleteUser(777L);
+
+        mockMvc.perform(delete("/api/users/777"))
+                .andDo(print())
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.status").value(404))
+                .andExpect(jsonPath("$.message").value("User with id 777 not found"));
     }
 }

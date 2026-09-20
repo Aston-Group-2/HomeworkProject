@@ -1,6 +1,7 @@
 package userservice.dto;
 
 import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
@@ -15,6 +16,7 @@ public class CreateUserRequest {
     @Email(message = "Invalid email format")
     private String email;
 
-    @Min(value = 1, message = "Age must be positive")
+    @Min(value = 0, message = "Age must be positive")
+    @Max(value = 150, message = "Age must be realistic")
     private Integer age;
 }
