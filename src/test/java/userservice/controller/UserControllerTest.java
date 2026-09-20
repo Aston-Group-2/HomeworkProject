@@ -6,7 +6,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.http.MediaType;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import userservice.dto.UserRequestDto;
 import userservice.dto.UserResponseDto;
@@ -34,10 +34,9 @@ class UserControllerTest {
         @Autowired
         private ObjectMapper objectMapper;
 
-        @MockBean
+        @MockitoBean
         private UserService userService;
 
-        // Смешные тестовые данные вместо скучных test@mail.ru
         private static final LocalDateTime FIXED_TIME = LocalDateTime.of(2024, 1, 1, 12, 0);
         private static final UserResponseDto HOMER = new UserResponseDto(
                         1L, "Гомер Симпсон", "homer@springfield.doh", 39, FIXED_TIME);
