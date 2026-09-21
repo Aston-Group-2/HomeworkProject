@@ -5,6 +5,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import userservice.dto.CreateUserRequest;
 import userservice.dto.UserDto;
+import userservice.exception.EmailAlreadyExistsException;
+import userservice.exception.UserNotFoundException;
 import userservice.model.User;
 import userservice.repository.UserRepository;
 
@@ -25,14 +27,14 @@ public class UserService {
 
     public UserDto getUserById(Long id) {
         User user = userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("User not found with id: " + id));
+                .orElseThrow(() -> new UserNotFoundException(id));
         return toDto(user);
     }
 
     @Transactional
     public UserDto createUser(CreateUserRequest request) {
         if (userRepository.existsByEmail(request.getEmail()))
-            throw new IllegalArgumentException("Email already in use");
+            throw new EmailAlreadyExistsException(request.getEmail());
 
         User user = new User(request.getName(), request.getEmail(), request.getAge());
         User saved = userRepository.save(user);
@@ -42,20 +44,19 @@ public class UserService {
     @Transactional
     public UserDto updateUser(Long id, CreateUserRequest request) {
         User user = userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("User not found with id: " + id));
+                .orElseThrow(() -> new UserNotFoundException(id));
 
         user.setName(request.getName());
         user.setEmail(request.getEmail());
         user.setAge(request.getAge());
 
-        User updated = userRepository.save(user);
-        return toDto(updated);
+        return toDto(user);
     }
 
     @Transactional
     public void deleteUser(Long id) {
         if (!userRepository.existsById(id))
-            throw new RuntimeException("User not found with id: " + id);
+            throw new UserNotFoundException(id);
 
         userRepository.deleteById(id);
     }
