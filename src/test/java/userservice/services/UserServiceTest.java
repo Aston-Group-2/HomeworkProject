@@ -8,6 +8,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import userservice.dto.CreateUserRequest;
 import userservice.dto.UserDto;
+import userservice.exception.EmailAlreadyExistsException;
+import userservice.exception.UserNotFoundException;
 import userservice.model.User;
 import userservice.repository.UserRepository;
 
@@ -17,6 +19,7 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -67,7 +70,7 @@ class UserServiceTest {
     @Test
     void getUserById_WhenNotExists_ShouldThrowException() {
         when(userRepository.findById(99L)).thenReturn(Optional.empty());
-        assertThrows(RuntimeException.class, () -> userService.getUserById(99L));
+        assertThrows(UserNotFoundException.class, () -> userService.getUserById(99L));
     }
 
     @Test
@@ -78,7 +81,7 @@ class UserServiceTest {
             try {
                 java.lang.reflect.Field idField = User.class.getDeclaredField("id");
                 idField.setAccessible(true);
-                idField.setLong(user, 1L);
+                idField.set(user, 1L);
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
@@ -94,22 +97,29 @@ class UserServiceTest {
     @Test
     void createUser_WhenEmailExists_ShouldThrowException() {
         when(userRepository.existsByEmail("ivan@test.com")).thenReturn(true);
-        assertThrows(IllegalArgumentException.class, () -> userService.createUser(createRequest));
+        assertThrows(EmailAlreadyExistsException.class, () -> userService.createUser(createRequest));
         verify(userRepository, never()).save(any(User.class));
     }
 
     @Test
     void updateUser_WhenExists_ShouldUpdateFields() {
         when(userRepository.findById(1L)).thenReturn(Optional.of(sampleUser));
-        when(userRepository.save(any(User.class))).thenReturn(sampleUser);
+
         CreateUserRequest updateRequest = new CreateUserRequest();
         updateRequest.setName("Petr");
         updateRequest.setEmail("petr@test.com");
         updateRequest.setAge(30);
+
         UserDto result = userService.updateUser(1L, updateRequest);
+
         assertEquals("Petr", result.getName());
         assertEquals("petr@test.com", result.getEmail());
         assertEquals(30, result.getAge());
+
+        verify(userRepository, never()).save(any(User.class));
+        assertEquals("Petr", sampleUser.getName());
+        assertEquals("petr@test.com", sampleUser.getEmail());
+        assertEquals(30, sampleUser.getAge());
     }
 
     @Test
@@ -122,6 +132,6 @@ class UserServiceTest {
     @Test
     void deleteUser_WhenNotExists_ShouldThrowException() {
         when(userRepository.existsById(99L)).thenReturn(false);
-        assertThrows(RuntimeException.class, () -> userService.deleteUser(99L));
+        assertThrows(UserNotFoundException.class, () -> userService.deleteUser(99L));
     }
 }
