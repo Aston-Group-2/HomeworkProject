@@ -8,6 +8,8 @@ import userservice.dto.UserDto;
 import userservice.exception.EmailAlreadyExistsException;
 import userservice.exception.UserNotFoundException;
 import userservice.model.User;
+import userservice.notification.event.UserEvent;
+import userservice.notification.kafka.UserEventProducer;
 import userservice.repository.UserRepository;
 
 import java.util.List;
@@ -18,6 +20,7 @@ import java.util.List;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final UserEventProducer userEventProducer;
 
     public List<UserDto> getAllUsers() {
         return userRepository.findAll().stream()
@@ -33,11 +36,25 @@ public class UserService {
 
     @Transactional
     public UserDto createUser(CreateUserRequest request) {
-        if (userRepository.existsByEmail(request.getEmail()))
+        if (userRepository.existsByEmail(request.getEmail())) {
             throw new EmailAlreadyExistsException(request.getEmail());
+        }
 
-        User user = new User(request.getName(), request.getEmail(), request.getAge());
+        User user = new User(
+                request.getName(),
+                request.getEmail(),
+                request.getAge()
+        );
+
         User saved = userRepository.save(user);
+
+        userEventProducer.send(
+                new UserEvent(
+                        UserEvent.Operation.CREATED,
+                        saved.getEmail()
+                )
+        );
+
         return toDto(saved);
     }
 
@@ -55,10 +72,17 @@ public class UserService {
 
     @Transactional
     public void deleteUser(Long id) {
-        if (!userRepository.existsById(id))
-            throw new UserNotFoundException(id);
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new UserNotFoundException(id));
 
-        userRepository.deleteById(id);
+        userRepository.delete(user);
+
+        userEventProducer.send(
+                new UserEvent(
+                        UserEvent.Operation.DELETED,
+                        user.getEmail()
+                )
+        );
     }
 
     private UserDto toDto(User user) {
