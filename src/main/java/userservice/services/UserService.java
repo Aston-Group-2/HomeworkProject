@@ -1,5 +1,6 @@
 package userservice.services;
 
+import common.event.OperationType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -7,6 +8,7 @@ import userservice.dto.CreateUserRequest;
 import userservice.dto.UserDto;
 import userservice.exception.EmailAlreadyExistsException;
 import userservice.exception.UserNotFoundException;
+import userservice.kafka.UserEventProducer;
 import userservice.model.User;
 import userservice.repository.UserRepository;
 
@@ -18,6 +20,7 @@ import java.util.List;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final UserEventProducer userEventProducer;
 
     public List<UserDto> getAllUsers() {
         return userRepository.findAll().stream()
@@ -38,6 +41,7 @@ public class UserService {
 
         User user = new User(request.getName(), request.getEmail(), request.getAge());
         User saved = userRepository.save(user);
+        userEventProducer.send(saved.getEmail(), OperationType.CREATE);
         return toDto(saved);
     }
 
@@ -55,10 +59,11 @@ public class UserService {
 
     @Transactional
     public void deleteUser(Long id) {
-        if (!userRepository.existsById(id))
-            throw new UserNotFoundException(id);
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new UserNotFoundException(id));
 
         userRepository.deleteById(id);
+        userEventProducer.send(user.getEmail(), OperationType.DELETE);
     }
 
     private UserDto toDto(User user) {
@@ -67,7 +72,6 @@ public class UserService {
                 user.getName(),
                 user.getEmail(),
                 user.getAge(),
-                user.getCreatedAt()
-        );
+                user.getCreatedAt());
     }
 }
