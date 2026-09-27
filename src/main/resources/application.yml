@@ -2,7 +2,7 @@ spring:
   datasource:
     url: jdbc:postgresql://localhost:5432/user_service_db
     username: postgres
-    password: your_password # PASSWORD
+    password: password
   jpa:
     hibernate:
       ddl-auto: update
@@ -10,3 +10,35 @@ spring:
     properties:
       hibernate:
         format_sql: true
+
+  kafka:
+    bootstrap-servers: localhost:9092
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+    consumer:
+      group-id: notification-service
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: "common.event"
+        spring.json.value.default.type: common.event.UserEvent
+
+  mail:
+    host: localhost
+    port: 1025
+    # Mailpit does not require auth/TLS
+    properties:
+      mail:
+        smtp:
+          auth: false
+          starttls:
+            enable: false
+
+app:
+  kafka:
+    topic: user-events
+  mail:
+    from: no-reply@userservice.local
+
