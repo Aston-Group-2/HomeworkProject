@@ -20,13 +20,19 @@ public class UserEventProducer {
 
     public void send(String email, OperationType operation) {
         UserEvent event = new UserEvent(operation, email);
-        kafkaTemplate.send(topic, email, event)
-                .whenComplete((result, ex) -> {
-                    if (ex != null) {
-                        log.error("Failed to send event {} to Kafka", event, ex);
-                    } else {
-                        log.info("Event sent to Kafka: {}", event);
-                    }
-                });
+        try {
+            kafkaTemplate.send(topic, email, event)
+                    .whenComplete((result, ex) -> {
+                        if (ex != null) {
+                            log.error("Failed to send event {} to Kafka", event, ex);
+                        } else {
+                            log.info("Event sent to Kafka: {}", event);
+                        }
+                    });
+        } catch (Exception e) {
+            // send() может бросить исключение синхронно (например, Kafka недоступна дольше max.block.ms).
+            // К этому моменту транзакция уже закоммичена, поэтому клиенту нельзя отдавать 500.
+            log.error("Failed to send event {} to Kafka", event, e);
+        }
     }
 }
