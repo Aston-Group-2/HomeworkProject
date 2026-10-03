@@ -1,21 +1,9 @@
-spring:
-  datasource:
-    url: jdbc:postgresql://localhost:5432/user_service_db
-    username: postgres
-    password: password
-  jpa:
-    hibernate:
-      ddl-auto: update
-    show-sql: true
-    properties:
-      hibernate:
-        format_sql: true
+server:
+  port: 8081
 
+spring:
   kafka:
     bootstrap-servers: localhost:9092
-    producer:
-      key-serializer: org.apache.kafka.common.serialization.StringSerializer
-      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
     consumer:
       group-id: notification-service
       auto-offset-reset: earliest
@@ -28,7 +16,6 @@ spring:
   mail:
     host: localhost
     port: 1025
-    # Mailpit does not require auth/TLS
     properties:
       mail:
         smtp:
@@ -42,3 +29,11 @@ app:
   mail:
     from: no-reply@userservice.local
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: always
