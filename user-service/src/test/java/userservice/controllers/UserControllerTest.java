@@ -55,8 +55,8 @@ class UserControllerTest {
         mockMvc.perform(get("/api/users"))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.size()").value(1))
-                .andExpect(jsonPath("$[0].name").value("Ivan"));
+                .andExpect(jsonPath("$._links.self").exists())
+                .andExpect(jsonPath("$._embedded.userDtoList[0].name").value("Ivan"));
     }
 
     @Test

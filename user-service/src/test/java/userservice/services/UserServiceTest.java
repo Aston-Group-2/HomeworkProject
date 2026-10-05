@@ -22,6 +22,9 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
+import org.springframework.hateoas.CollectionModel;
+import org.springframework.hateoas.EntityModel;
+
 @ExtendWith(MockitoExtension.class)
 class UserServiceTest {
 
@@ -53,18 +56,18 @@ class UserServiceTest {
     @Test
     void getAllUsers_ShouldReturnListOfDtos() {
         when(userRepository.findAll()).thenReturn(List.of(sampleUser));
-        List<UserDto> result = userService.getAllUsers();
-        assertEquals(1, result.size());
-        assertEquals("Ivan", result.get(0).getName());
+        CollectionModel<EntityModel<UserDto>> result = userService.getAllUsers();
+        assertEquals(1, result.getContent().size());
+        assertEquals("Ivan", result.getContent().get(0).getContent().getName());
         verify(userRepository, times(1)).findAll();
     }
 
     @Test
     void getUserById_WhenExists_ShouldReturnDto() {
         when(userRepository.findById(1L)).thenReturn(Optional.of(sampleUser));
-        UserDto result = userService.getUserById(1L);
+        EntityModel<UserDto> result = userService.getUserById(1L);
         assertNotNull(result);
-        assertEquals("ivan@test.com", result.getEmail());
+        assertEquals("ivan@test.com", result.getContent().getEmail());
     }
 
     @Test
@@ -88,9 +91,9 @@ class UserServiceTest {
             return user;
         });
 
-        UserDto result = userService.createUser(createRequest);
-        assertNotNull(result.getId());
-        assertEquals("Ivan", result.getName());
+        var result = userService.createUser(createRequest);
+        assertNotNull(result.getContent().getId());
+        assertEquals("Ivan", result.getContent().getName());
         verify(userRepository, times(1)).save(any(User.class));
     }
 
@@ -110,11 +113,11 @@ class UserServiceTest {
         updateRequest.setEmail("petr@test.com");
         updateRequest.setAge(30);
 
-        UserDto result = userService.updateUser(1L, updateRequest);
+        EntityModel<UserDto> result = userService.updateUser(1L, updateRequest);
 
-        assertEquals("Petr", result.getName());
-        assertEquals("petr@test.com", result.getEmail());
-        assertEquals(30, result.getAge());
+        assertEquals("Petr", result.getContent().getName());
+        assertEquals("petr@test.com", result.getContent().getEmail());
+        assertEquals(30, result.getContent().getAge());
 
         verify(userRepository, never()).save(any(User.class));
         assertEquals("Petr", sampleUser.getName());
