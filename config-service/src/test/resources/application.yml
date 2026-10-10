@@ -1,0 +1,10 @@
+# Тестовая конфигурация: используем native-профиль с пустой (несуществующей) директорией,
+# чтобы не зависеть от внешних файлов во время теста.
+spring:
+  profiles:
+    active: native
+  cloud:
+    config:
+      server:
+        native:
+          search-locations: classpath:/config-repo

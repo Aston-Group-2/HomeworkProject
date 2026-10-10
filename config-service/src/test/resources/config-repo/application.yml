@@ -1,0 +1,3 @@
+# Тестовый конфиг (пустышка) — нужен, чтобы native config server имел что отдавать.
+test:
+  property: test-value

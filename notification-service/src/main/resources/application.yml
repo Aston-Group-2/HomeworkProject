@@ -1,5 +1,3 @@
-# Bootstrap-конфигурация: настройки подтягиваются с Config Server (external configuration).
-# Всё остальное (kafka, mail, eureka, порт) приходит из config-repo/notification-service.yml
 spring:
   application:
     name: notification-service
