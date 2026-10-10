@@ -1,4 +1,4 @@
-package userservice.controllers;
+package userservice.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -13,8 +13,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import userservice.dto.CreateUserRequest;
-import userservice.dto.UserDto;
-import userservice.services.UserService;
+import userservice.service.UserService;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.*;
 

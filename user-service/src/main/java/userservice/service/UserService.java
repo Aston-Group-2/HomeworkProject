@@ -1,15 +1,13 @@
-package userservice.services;
+package userservice.service;
 
-import common.event.OperationType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import userservice.controllers.UserController;
+import userservice.controller.UserController;
 import userservice.dto.CreateUserRequest;
 import userservice.dto.UserDto;
-import userservice.event.UserChangedEvent;
 import userservice.exception.EmailAlreadyExistsException;
 import userservice.exception.UserNotFoundException;
 import userservice.model.User;
