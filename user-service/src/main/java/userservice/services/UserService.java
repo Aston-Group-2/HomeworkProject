@@ -2,6 +2,7 @@ package userservice.services;
 
 import common.event.OperationType;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.stereotype.Service;
@@ -26,6 +27,7 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.*;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     public CollectionModel<EntityModel<UserDto>> getAllUsers() {
         List<EntityModel<UserDto>> users = userRepository.findAll().stream()
@@ -56,6 +58,9 @@ public class UserService {
 
         User user = new User(request.getName(), request.getEmail(), request.getAge());
         User saved = userRepository.save(user);
+
+        eventPublisher.publishEvent(new UserChangedEvent(saved.getEmail(), OperationType.CREATE));
+
         UserDto dto = toDto(saved);
         return EntityModel.of(dto,
                 linkTo(methodOn(UserController.class).getUserById(saved.getId())).withSelfRel(),
@@ -79,9 +84,11 @@ public class UserService {
 
     @Transactional
     public void deleteUser(Long id) {
-        userRepository.findById(id)
+        User user = userRepository.findById(id)
                 .orElseThrow(() -> new UserNotFoundException(id));
         userRepository.deleteById(id);
+
+        eventPublisher.publishEvent(new UserChangedEvent(user.getEmail(), OperationType.DELETE));
     }
 
     private UserDto toDto(User user) {

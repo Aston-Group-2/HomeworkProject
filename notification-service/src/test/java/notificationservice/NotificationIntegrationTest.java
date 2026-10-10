@@ -26,7 +26,9 @@ import java.time.Duration;
 @EmbeddedKafka(partitions = 1, topics = "user-events")
 @TestPropertySource(properties = {
                 "spring.kafka.bootstrap-servers=${spring.embedded.kafka.brokers}",
-                "spring.kafka.consumer.auto-offset-reset=earliest"
+                "spring.kafka.consumer.auto-offset-reset=earliest",
+                "spring.kafka.producer.key-serializer=org.apache.kafka.common.serialization.StringSerializer",
+                "spring.kafka.producer.value-serializer=org.springframework.kafka.support.serializer.JsonSerializer"
 })
 class NotificationIntegrationTest {
 

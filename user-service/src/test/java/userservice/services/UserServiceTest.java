@@ -6,8 +6,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 import userservice.dto.CreateUserRequest;
 import userservice.dto.UserDto;
+import userservice.event.UserChangedEvent;
 import userservice.exception.EmailAlreadyExistsException;
 import userservice.exception.UserNotFoundException;
 import userservice.model.User;
@@ -30,6 +32,9 @@ class UserServiceTest {
 
     @Mock
     private UserRepository userRepository;
+
+    @Mock
+    private ApplicationEventPublisher eventPublisher;
 
     @InjectMocks
     private UserService userService;
@@ -58,7 +63,8 @@ class UserServiceTest {
         when(userRepository.findAll()).thenReturn(List.of(sampleUser));
         CollectionModel<EntityModel<UserDto>> result = userService.getAllUsers();
         assertEquals(1, result.getContent().size());
-        assertEquals("Ivan", result.getContent().get(0).getContent().getName());
+        EntityModel<UserDto> firstUser = result.getContent().iterator().next();
+        assertEquals("Ivan", firstUser.getContent().getName());
         verify(userRepository, times(1)).findAll();
     }
 
@@ -95,6 +101,7 @@ class UserServiceTest {
         assertNotNull(result.getContent().getId());
         assertEquals("Ivan", result.getContent().getName());
         verify(userRepository, times(1)).save(any(User.class));
+        verify(eventPublisher).publishEvent(new UserChangedEvent("ivan@test.com", common.event.OperationType.CREATE));
     }
 
     @Test
@@ -127,14 +134,15 @@ class UserServiceTest {
 
     @Test
     void deleteUser_WhenExists_ShouldDelete() {
-        when(userRepository.existsById(1L)).thenReturn(true);
+        when(userRepository.findById(1L)).thenReturn(Optional.of(sampleUser));
         userService.deleteUser(1L);
         verify(userRepository, times(1)).deleteById(1L);
+        verify(eventPublisher).publishEvent(new UserChangedEvent("ivan@test.com", common.event.OperationType.DELETE));
     }
 
     @Test
     void deleteUser_WhenNotExists_ShouldThrowException() {
-        when(userRepository.existsById(99L)).thenReturn(false);
+        when(userRepository.findById(99L)).thenReturn(Optional.empty());
         assertThrows(UserNotFoundException.class, () -> userService.deleteUser(99L));
     }
 }
