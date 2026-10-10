@@ -24,6 +24,9 @@
         <module>common-dto</module>
         <module>user-service</module>
         <module>notification-service</module>
+        <module>config-service</module>
+        <module>discovery-service</module>
+        <module>gateway-service</module>
     </modules>
 
     <properties>
@@ -31,6 +34,9 @@
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+        <spring-cloud.version>2023.0.1</spring-cloud.version>
+        <resilience4j.version>2.2.0</resilience4j.version>
 
         <mapstruct.version>1.5.5.Final</mapstruct.version>
         <lombok.version>1.18.36</lombok.version>
@@ -45,6 +51,20 @@
 
     <dependencyManagement>
         <dependencies>
+
+            <dependency>
+                <groupId>org.springframework.cloud</groupId>
+                <artifactId>spring-cloud-dependencies</artifactId>
+                <version>${spring-cloud.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>io.github.resilience4j</groupId>
+                <artifactId>resilience4j-spring-boot3</artifactId>
+                <version>${resilience4j.version}</version>
+            </dependency>
 
             <dependency>
                 <groupId>com.example</groupId>

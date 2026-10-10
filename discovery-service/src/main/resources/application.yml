@@ -1,0 +1,24 @@
+server:
+  port: 8761
+
+spring:
+  application:
+    name: discovery-service
+
+eureka:
+  client:
+    # Сам сервер регистрации не должен регистрироваться у себя и тянуть реестр
+    register-with-eureka: false
+    fetch-registry: false
+  server:
+    # В dev-режиме быстрее вычищаем "мёртвые" инстансы
+    enable-self-preservation: false
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: always

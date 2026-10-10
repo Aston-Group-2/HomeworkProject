@@ -1,0 +1,27 @@
+# Тестовая конфигурация: не тянем config-server и не регистрируемся в Eureka.
+spring:
+  cloud:
+    config:
+      enabled: false
+  kafka:
+    consumer:
+      group-id: notification-service
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: "common.event"
+        spring.json.value.default.type: common.event.UserEvent
+  mail:
+    host: localhost
+    port: 1025
+
+app:
+  kafka:
+    topic: user-events
+  mail:
+    from: no-reply@userservice.local
+
+eureka:
+  client:
+    enabled: false

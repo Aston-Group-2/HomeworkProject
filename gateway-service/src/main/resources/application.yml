@@ -1,8 +1,11 @@
 # Bootstrap-конфигурация: настройки подтягиваются с Config Server (external configuration).
-# Всё остальное (datasource, kafka, eureka, порт) приходит из config-repo/user-service.yml
+# Маршруты, circuit breaker и eureka приходят из config-repo/gateway-service.yml
+server:
+  port: 8082
+
 spring:
   application:
-    name: user-service
+    name: gateway-service
   config:
     import: "optional:configserver:http://localhost:8888"
 

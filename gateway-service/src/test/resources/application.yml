@@ -1,0 +1,9 @@
+# Тестовая конфигурация: не тянем config-server и не регистрируемся в Eureka.
+spring:
+  cloud:
+    config:
+      enabled: false
+
+eureka:
+  client:
+    enabled: false
