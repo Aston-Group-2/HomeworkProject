@@ -9,14 +9,17 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.hateoas.CollectionModel;
+import org.springframework.hateoas.EntityModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import userservice.assembler.UserModelAssembler;
 import userservice.dto.CreateUserRequest;
 import userservice.dto.UserDto;
 import userservice.services.UserService;
 
-import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.*;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/users")
@@ -25,13 +28,19 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.*;
 public class UserController {
 
     private final UserService userService;
+    private final UserModelAssembler userModelAssembler;
 
-    @Operation(summary = "Получить всех пользователей")
-    @ApiResponse(responseCode = "200", description = "Список пользователей")
-    @GetMapping
-    public ResponseEntity<?> getAllUsers() {
-        var users = userService.getAllUsers();
-        return ResponseEntity.ok(users);
+    @Operation(summary = "Создать нового пользователя")
+    @ApiResponse(responseCode = "201", description = "Пользователь создан")
+    @ApiResponses({
+            @ApiResponse(responseCode = "201", description = "Пользователь создан"),
+            @ApiResponse(responseCode = "400", description = "Невалидные данные"),
+            @ApiResponse(responseCode = "409", description = "Email уже существует")
+    })
+    @PostMapping
+    public ResponseEntity<EntityModel<UserDto>> createUser(@Valid @RequestBody CreateUserRequest request) {
+        UserDto created = userService.createUser(request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(userModelAssembler.toModel(created));
     }
 
     @Operation(summary = "Получить пользователя по ID")
@@ -42,22 +51,18 @@ public class UserController {
                     content = @Content(schema = @Schema(implementation = String.class)))
     })
     @GetMapping("/{id}")
-    public ResponseEntity<?> getUserById(@Parameter(description = "ID пользователя") @PathVariable Long id) {
-        var user = userService.getUserById(id);
-        return ResponseEntity.ok(user);
+    public ResponseEntity<EntityModel<UserDto>> getUserById(@Parameter(description = "ID пользователя") @PathVariable Long id) {
+        UserDto user = userService.getUserById(id);
+        return ResponseEntity.ok(userModelAssembler.toModel(user));
     }
 
-    @Operation(summary = "Создать нового пользователя")
-    @ApiResponse(responseCode = "201", description = "Пользователь создан")
-    @ApiResponses({
-            @ApiResponse(responseCode = "201", description = "Пользователь создан"),
-            @ApiResponse(responseCode = "400", description = "Невалидные данные"),
-            @ApiResponse(responseCode = "409", description = "Email уже существует")
-    })
-    @PostMapping
-    public ResponseEntity<?> createUser(@Valid @RequestBody CreateUserRequest request) {
-        var created = userService.createUser(request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(created);
+    @Operation(summary = "Получить всех пользователей")
+    @ApiResponse(responseCode = "200", description = "Список пользователей")
+    @GetMapping
+    public ResponseEntity<CollectionModel<EntityModel<UserDto>>> getAllUsers() {
+        List<UserDto> users = userService.getAllUsers();
+        CollectionModel<EntityModel<UserDto>> collectionModel = userModelAssembler.toCollectionModel(users);
+        return ResponseEntity.ok(collectionModel);
     }
 
     @Operation(summary = "Обновить пользователя")
@@ -67,10 +72,10 @@ public class UserController {
             @ApiResponse(responseCode = "404", description = "Пользователь не найден")
     })
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateUser(@Parameter(description = "ID пользователя") @PathVariable Long id,
-                                        @Valid @RequestBody CreateUserRequest request) {
-        var updated = userService.updateUser(id, request);
-        return ResponseEntity.ok(updated);
+    public ResponseEntity<EntityModel<UserDto>> updateUser(@Parameter(description = "ID пользователя") @PathVariable Long id,
+                                                           @Valid @RequestBody CreateUserRequest request) {
+        UserDto updated = userService.updateUser(id, request);
+        return ResponseEntity.ok(userModelAssembler.toModel(updated));
     }
 
     @Operation(summary = "Удалить пользователя")
