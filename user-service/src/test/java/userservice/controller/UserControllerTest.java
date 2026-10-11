@@ -1,4 +1,4 @@
-package userservice.controllers;
+package userservice.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
@@ -12,7 +12,7 @@ import userservice.dto.CreateUserRequest;
 import userservice.dto.UserDto;
 import userservice.exception.EmailAlreadyExistsException;
 import userservice.exception.UserNotFoundException;
-import userservice.services.UserService;
+import userservice.service.UserService;
 
 import java.time.LocalDateTime;
 import java.util.List;

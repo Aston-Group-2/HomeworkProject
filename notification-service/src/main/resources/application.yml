@@ -1,39 +1,21 @@
-server:
-  port: 8081
-
 spring:
-  kafka:
-    bootstrap-servers: localhost:9092
-    consumer:
-      group-id: notification-service
-      auto-offset-reset: earliest
-      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
-      properties:
-        spring.json.trusted.packages: "common.event"
-        spring.json.value.default.type: common.event.UserEvent
+  application:
+    name: notification-service
+  config:
+    import: optional:configserver:http://localhost:8888
 
-  mail:
-    host: localhost
-    port: 1025
-    properties:
-      mail:
-        smtp:
-          auth: false
-          starttls:
-            enable: false
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
 
-app:
-  kafka:
-    topic: user-events
-  mail:
-    from: no-reply@userservice.local
-
-management:
-  endpoints:
-    web:
-      exposure:
-        include: health,info
-  endpoint:
-    health:
-      show-details: always
+resilience4j:
+  circuitbreaker:
+    instances:
+      emailService:
+        slidingWindowSize: 10
+        failureRateThreshold: 50
+        waitDurationInOpenState: 10s
+        minimumNumberOfCalls: 5
+        permittedNumberOfCallsInHalfOpenState: 3
+        eventConsumerBufferSize: 10

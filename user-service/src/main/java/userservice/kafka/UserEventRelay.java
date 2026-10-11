@@ -6,10 +6,6 @@ import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 import userservice.event.UserChangedEvent;
 
-/**
- * Пересылает события пользователя в Kafka только после успешного коммита транзакции.
- * При откате события отбрасываются, поэтому письмо не уйдёт о несуществующем пользователе.
- */
 @Component
 @RequiredArgsConstructor
 public class UserEventRelay {
