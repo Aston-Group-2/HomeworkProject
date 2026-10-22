@@ -3,6 +3,7 @@ server:
 
 spring:
   kafka:
+    bootstrap-servers: kafka:29092
     consumer:
       group-id: notification-service
       auto-offset-reset: earliest
@@ -12,7 +13,7 @@ spring:
         spring.json.trusted.packages: "common.event"
         spring.json.value.default.type: common.event.UserEvent
   mail:
-    host: localhost
+    host: mailpit
     port: 1025
     properties:
       mail:
@@ -26,3 +27,12 @@ app:
     topic: user-events
   mail:
     from: no-reply@userservice.local
+
+resilience4j:
+  circuitbreaker:
+    instances:
+      emailService:
+        slidingWindowSize: 10
+        failureRateThreshold: 50
+        waitDurationInOpenState: 10s
+        minimumNumberOfCalls: 5
