@@ -3,14 +3,15 @@ server:
 
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/user_service_db
+    url: jdbc:postgresql://postgres:5432/user_service_db
     username: postgres
-    password: password # PASSWORD
+    password: ${DB_PASSWORD} # PASSWORD
   jpa:
     hibernate:
       ddl-auto: update
     show-sql: true
   kafka:
+    bootstrap-servers: kafka:29092
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
